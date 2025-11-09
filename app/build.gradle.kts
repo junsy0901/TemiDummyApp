@@ -35,6 +35,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
+    viewBinding {
+        enable = true
+    }
 }
 
 dependencies {
@@ -50,4 +54,10 @@ dependencies {
 
     // Temi SDK 추가
     implementation(libs.temi.sdk)
+
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
 }
