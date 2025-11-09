@@ -1,8 +1,10 @@
 package com.example.temidummyapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,6 +26,15 @@ public class MainActivity extends AppCompatActivity {
         // 텍스트 설정
         TextView title = findViewById(R.id.title);
         title.setText(R.string.temi_title);
+
+        Button newActivityButton = findViewById(R.id.new_activity_button);
+        newActivityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PhotoTemi.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

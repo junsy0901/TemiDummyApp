@@ -24,6 +24,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".PhotoTemi"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <!-- ✅ Temi Skill 등록 (이 부분 추가) -->
         <meta-data
             android:name="com.robotemi.sdk.metadata.SKILL"
