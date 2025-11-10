@@ -50,4 +50,6 @@ dependencies {
 
     // Temi SDK 추가
     implementation(libs.temi.sdk)
+
+    implementation(libs.cardview)
 }
