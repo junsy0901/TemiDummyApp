@@ -25,15 +25,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.robotemi.sdk.Robot;
-import com.robotemi.sdk.listeners.OnRobotReadyListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-public class PhotoTemiFilmingActivity extends AppCompatActivity implements OnRobotReadyListener {
+public class PhotoTemiFilmingActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
     private static final String TAG = "PhotoTemiFilming";
@@ -41,9 +39,7 @@ public class PhotoTemiFilmingActivity extends AppCompatActivity implements OnRob
     private PreviewView previewView;
     private TextView countdownText;
     private ImageCapture imageCapture;
-    private Robot robot;
 
-    private boolean isTemiRobot = false;
     private int countdownCount = 4;
     private final ArrayList<String> capturedImagePaths = new ArrayList<>();
 
@@ -54,41 +50,17 @@ public class PhotoTemiFilmingActivity extends AppCompatActivity implements OnRob
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        robot = Robot.getInstance();
-
         previewView = findViewById(R.id.camera_preview);
         countdownText = findViewById(R.id.countdown_text);
 
         if (allPermissionsGranted()) {
-            if (!isTemiRobot) {
-                startCamera();
-            }
+            startCamera();
         } else {
             ActivityCompat.requestPermissions(
                     this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
         }
 
         startNextCountdown();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        robot.addOnRobotReadyListener(this);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        robot.removeOnRobotReadyListener(this);
-    }
-
-    @Override
-    public void onRobotReady(boolean isReady) {
-        if (isReady) {
-            isTemiRobot = true;
-            robot.hideTopBar(true);
-        }
     }
 
     private void startCamera() {
@@ -115,54 +87,48 @@ public class PhotoTemiFilmingActivity extends AppCompatActivity implements OnRob
     }
 
     private void takePhoto() {
-        if (isTemiRobot) {
-            // TODO: Temi 로봇으로 사진을 촬영하는 코드를 추가해야 합니다.
-            // 현재 Temi SDK에 사진 촬영 기능이 없어, 다음 단계로 넘어갑니다.
+        if (imageCapture == null) {
             handlePhotoResult();
-        } else {
-            if (imageCapture == null) {
-                handlePhotoResult();
-                return;
-            }
-
-            String name = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
-                    .format(System.currentTimeMillis());
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PhotoTemi");
-            }
-
-            ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions
-                    .Builder(getContentResolver(),
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            contentValues)
-                    .build();
-
-            imageCapture.takePicture(
-                    outputOptions,
-                    ContextCompat.getMainExecutor(this),
-                    new ImageCapture.OnImageSavedCallback() {
-                        @Override
-                        public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
-                            String msg = "사진 촬영 성공: " + output.getSavedUri();
-                            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, msg);
-                            if (output.getSavedUri() != null) {
-                                capturedImagePaths.add(output.getSavedUri().toString());
-                            }
-                            handlePhotoResult();
-                        }
-
-                        @Override
-                        public void onError(@NonNull ImageCaptureException exc) {
-                            Log.e(TAG, "사진 촬영 실패: ", exc);
-                            handlePhotoResult();
-                        }
-                    }
-            );
+            return;
         }
+
+        String name = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+                .format(System.currentTimeMillis());
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PhotoTemi");
+        }
+
+        ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions
+                .Builder(getContentResolver(),
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues)
+                .build();
+
+        imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this),
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
+                        String msg = "사진 촬영 성공: " + output.getSavedUri();
+                        Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, msg);
+                        if (output.getSavedUri() != null) {
+                            capturedImagePaths.add(output.getSavedUri().toString());
+                        }
+                        handlePhotoResult();
+                    }
+
+                    @Override
+                    public void onError(@NonNull ImageCaptureException exc) {
+                        Log.e(TAG, "사진 촬영 실패: ", exc);
+                        handlePhotoResult();
+                    }
+                }
+        );
     }
 
     private void handlePhotoResult() {
@@ -199,9 +165,7 @@ public class PhotoTemiFilmingActivity extends AppCompatActivity implements OnRob
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (allPermissionsGranted()) {
-                if (!isTemiRobot) {
-                    startCamera();
-                }
+                startCamera();
             } else {
                 Toast.makeText(this, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
                 finish();
